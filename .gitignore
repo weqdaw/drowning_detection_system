@@ -1,0 +1,43 @@
+# Local environments and credentials
+venv/
+.venv/
+.env
+.env.*
+!.env.example
+*.local.yml
+*.local.yaml
+application-local.yml
+application-local.yaml
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# Dependencies and build outputs
+target/
+node_modules/
+dist/
+build/
+.npm-cache/
+
+# Runtime data
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.log
+*.raw
+/backend/blueprint.json
+/backend/static/recordings/*
+!/backend/static/recordings/.gitkeep
+
+# Editors and operating system
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

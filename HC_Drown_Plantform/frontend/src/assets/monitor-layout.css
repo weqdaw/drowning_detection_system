@@ -1,0 +1,250 @@
+/* Map-first workspace. These rules only apply to the real-time monitor tab. */
+.dashboard-container.is-monitor {
+  --monitor-rail: 320px;
+  --monitor-inset: 22px;
+  --monitor-gap: 18px;
+  background: #07121e;
+  isolation: isolate;
+}
+
+.is-monitor .monitor-stage {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+.is-monitor .monitor-stage > .map-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: #07121e;
+  box-shadow: none;
+}
+
+.is-monitor .map-panel .cesium-container { flex: none; height: 100%; }
+
+/* Top and bottom edge shading blends the floating HUD into the map. */
+.is-monitor .monitor-stage::before,
+.is-monitor .monitor-stage::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.is-monitor .monitor-stage::before { top: 0; height: 170px; background: linear-gradient(#07121ec9, transparent); }
+.is-monitor .monitor-stage::after { bottom: 0; height: 175px; background: linear-gradient(transparent, #07121ee8); }
+
+.is-monitor .monitor-heading {
+  position: absolute;
+  top: var(--monitor-inset);
+  left: var(--monitor-inset);
+  z-index: 4;
+  width: 420px;
+  max-width: calc(100% - var(--monitor-rail) - 3 * var(--monitor-inset));
+  padding: 14px 18px;
+  border: 1px solid #4f7c965c;
+  border-left: 2px solid #65d5f0;
+  border-radius: 5px;
+  background: linear-gradient(105deg, #10283bee, #0a192bdc);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 32px #0003;
+}
+.is-monitor .monitor-heading-main { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.is-monitor .monitor-heading h2 { font-size: 23px; font-weight: 500; letter-spacing: 3px; }
+.is-monitor .monitor-heading .eyebrow { font-size: 8px; letter-spacing: 1.8px; color: #81b2ca; }
+.is-monitor .monitor-heading .overview-meta { font-size: 10px; line-height: 1.9; letter-spacing: 2px; white-space: nowrap; padding-left: 18px; }
+.is-monitor .monitor-signal { display: block; position: relative; width: 42px; height: 42px; flex-shrink: 0; color: #71d5ec; }
+.is-monitor .monitor-signal svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: .7; opacity: .65; }
+.is-monitor .monitor-signal::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0 285deg, #63d5ef00 285deg, #63d5ef66 360deg); animation: monitor-radar 9s linear infinite; }
+
+/* Compact overview dock keeps the geographic view open above it. */
+.is-monitor .monitor-stage > .kpi-row {
+  position: absolute;
+  bottom: var(--monitor-inset);
+  left: var(--monitor-inset);
+  right: calc(var(--monitor-rail) + var(--monitor-inset) + var(--monitor-gap));
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  padding: 12px 0;
+  border: 1px solid #4f7c965c;
+  border-radius: 6px;
+  background: linear-gradient(110deg, #102438f0, #0a192ae8);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 35px #0005;
+}
+.is-monitor .kpi-row::before { content: ''; position: absolute; top: -1px; left: 0; width: 110px; height: 1px; background: linear-gradient(90deg, transparent, #7edff5, transparent); animation: monitor-edge 14s ease-in-out infinite; pointer-events: none; }
+.is-monitor .kpi-row .kpi-card { min-height: 86px; padding: 5px 20px; border: 0; border-right: 1px solid #4266814d; border-radius: 0; background: transparent; box-shadow: none; overflow: visible; }
+.is-monitor .kpi-row .kpi-card:last-child { border-right: 0; }
+.is-monitor .kpi-row .kpi-card::before,
+.is-monitor .kpi-row .kpi-card::after { display: none; }
+.is-monitor .kpi-row .kpi-card:hover { background: #52c9ee06; transform: none; }
+.is-monitor .kpi-row .kpi-label { font-size: 11px; letter-spacing: .5px; margin-bottom: 10px; }
+.is-monitor .kpi-row .kpi-value { font-size: 32px; line-height: 1; color: #f0f7fd; }
+.is-monitor .kpi-row .kpi-value span { font-size: 13px; color: #7e9db5; }
+.is-monitor .kpi-row .kpi-trend { font-size: 9px; margin-top: 9px; }
+.is-monitor .kpi-row .kpi-icon { width: 27px; height: 27px; background: #52c9ee08; border-color: #476c844d; }
+.is-monitor .kpi-row .kpi-icon svg { width: 14px; height: 14px; }
+.is-monitor .kpi-row .kpi-card:nth-child(3) .kpi-value { color: #ff9ca8; }
+.is-monitor .kpi-row .kpi-card:nth-child(4) .kpi-value,
+.is-monitor .kpi-row .kpi-card:nth-child(5) .kpi-value { color: #8be1cd; }
+
+/* The rail is a sibling of the map, so its scrolling never pans the globe. */
+.is-monitor .monitor-rail {
+  position: absolute;
+  top: var(--monitor-inset);
+  right: var(--monitor-inset);
+  bottom: var(--monitor-inset);
+  z-index: 5;
+  width: var(--monitor-rail);
+  padding: 0;
+  gap: 14px;
+  background: transparent;
+  border: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+.is-monitor .monitor-card {
+  position: relative;
+  padding: 16px;
+  border: 1px solid #4f7c965c;
+  border-radius: 6px;
+  background: linear-gradient(145deg, #11263beb, #0a1728ed);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 12px 32px #0003;
+  flex-shrink: 0;
+  min-width: 0;
+  transition: border-color .25s, box-shadow .25s;
+}
+.is-monitor .monitor-card:hover { border-color: #6394ad8c; box-shadow: 0 12px 32px #0004, inset 0 1px 0 #7cc9e00f; }
+.is-monitor .monitor-card::after { content: ''; position: absolute; top: -1px; right: 14px; width: 28px; height: 2px; background: #72d7f0; opacity: .65; pointer-events: none; }
+.is-monitor .monitor-card .section-title { font-size: 12px; letter-spacing: 1px; gap: 9px; margin: 0 0 15px; }
+.is-monitor .monitor-card .section-title::before { display: none; }
+.is-monitor .monitor-card .section-title small { font-size: 8px; color: #7b9cb4; letter-spacing: 1.8px; }
+.is-monitor .panel-index { display: inline-grid; place-items: center; width: 21px; height: 21px; border: 1px solid #3f6a835c; border-radius: 3px; color: #6dc9e5; font-size: 9px; font-family: monospace; letter-spacing: 0; }
+.is-monitor .monitor-video-card .video-container { width: 100%; border-color: #3d6076; border-radius: 4px; }
+.is-monitor .monitor-video-card .model-selection-bar { padding: 10px 0 0 !important; margin: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; gap: 12px; }
+.is-monitor .monitor-video-card .model-selection-bar span:last-child { overflow-wrap: anywhere; text-align: right; }
+.is-monitor .monitor-card .video-status { font-size: 9px; padding: 4px 7px; top: 8px; left: 8px; }
+.is-monitor .monitor-detection-card { flex: 1 0 230px; display: flex; flex-direction: column; min-height: 0; }
+.is-monitor .monitor-card .monitor-detection-feed { flex: 1; min-height: 120px; max-height: 310px; padding: 8px 10px; overflow-y: auto; border: 0; background: #07152166; border-radius: 4px; }
+.is-monitor .monitor-card .timeline-item { padding-top: 3px; padding-bottom: 10px; margin-bottom: 10px !important; line-height: 1.9; }
+.is-monitor .monitor-card .timeline-item > div > div:first-child { flex-wrap: wrap; gap: 3px 8px; }
+.is-monitor .monitor-card .monitor-linkage-feed { max-height: 158px; min-height: 88px; overflow-y: auto; padding: 10px 11px; border: 0; background: #07152166; border-radius: 4px; font-size: 10px; color: #a5bed2; overflow-wrap: anywhere; }
+.is-monitor .monitor-linkage-feed > div { padding: 5px 0; border-bottom: 1px solid #36516a40; }
+.is-monitor .monitor-linkage-feed > div:last-child { border-bottom: 0; }
+.is-monitor .monitor-linkage-feed > div:only-child { display: block; min-height: 0; }
+.is-monitor .monitor-detection-feed .monitor-empty-state { min-height: 160px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; color: #99b7cd; font-size: 11px; }
+.is-monitor .monitor-empty-state small { color: #67869e; font-size: 9px; }
+.is-monitor .empty-signal { display: flex; align-items: center; gap: 5px; height: 28px; margin-bottom: 8px; }
+.is-monitor .empty-signal i { width: 3px; height: 9px; background: #69c8e3; border-radius: 2px; animation: monitor-wave 2s ease-in-out infinite; opacity: .6; }
+.is-monitor .empty-signal i:nth-child(2) { animation-delay: .3s; height: 21px; }
+.is-monitor .empty-signal i:nth-child(3) { animation-delay: .6s; }
+
+/* Map HUD and safe, non-interactive edge details. */
+.is-monitor .map-panel .map-heading { position: absolute; z-index: 2; top: 30px; left: 50%; transform: translateX(-50%); height: 40px; width: auto; padding: 0 16px; gap: 18px; background: #091c2bc4; border: 1px solid #4c71884d; border-radius: 4px; pointer-events: none; backdrop-filter: blur(8px); }
+.is-monitor .map-panel .map-heading-title { font-size: 11px; white-space: nowrap; color: #b6d4e5; }
+.is-monitor .map-panel .map-heading small { white-space: nowrap; font-size: 8px; }
+.is-monitor .map-panel .map-controls { top: 122px; left: var(--monitor-inset); gap: 7px; }
+.is-monitor .map-panel .btn-map-action { padding: 10px 12px; font-size: 10px; border-color: #476f875c; background: #0a1c2bdb; }
+.is-monitor .map-panel .map-legend { left: var(--monitor-inset); bottom: 150px; padding: 9px 12px; border-color: #4c71884d; font-size: 9px; background: #081a29bd; backdrop-filter: blur(8px); }
+.is-monitor .map-panel .alarm-banner-overlay { top: 122px; left: 225px; right: calc(var(--monitor-rail) + var(--monitor-inset) + var(--monitor-gap)); }
+.is-monitor .map-panel .alarm-banner-content { font-size: 12px; gap: 9px; }
+.is-monitor .map-panel .map-frame { position: absolute; inset: 12px; z-index: 1; pointer-events: none; }
+.is-monitor .map-frame > i { position: absolute; width: 16px; height: 16px; border-color: #66bbd073; border-style: solid; border-width: 0; }
+.is-monitor .map-frame > i:nth-child(1) { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; }
+.is-monitor .map-frame > i:nth-child(2) { top: 0; right: 0; border-top-width: 1px; border-right-width: 1px; }
+.is-monitor .map-frame > i:nth-child(3) { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; }
+.is-monitor .map-frame > i:nth-child(4) { bottom: 0; left: 0; border-bottom-width: 1px; border-left-width: 1px; }
+.is-monitor .map-panel .map-orientation { position: absolute; top: 242px; left: var(--monitor-inset); z-index: 2; display: flex; align-items: center; gap: 8px; padding-left: 1px; color: #9bc4d8; pointer-events: none; }
+.is-monitor .map-orientation svg { width: 28px; height: 28px; stroke: currentColor; stroke-width: .8; }
+.is-monitor .map-orientation span { font-size: 9px; letter-spacing: 1.5px; text-shadow: 0 1px 3px #000; }
+.is-monitor .map-panel .cesium-viewer-fullscreenContainer { right: calc(var(--monitor-rail) + var(--monitor-inset) + var(--monitor-gap)); bottom: 150px; }
+
+@keyframes monitor-radar { to { transform: rotate(360deg); } }
+@keyframes monitor-edge { 0%, 100% { transform: translateX(0); opacity: .25; } 50% { transform: translateX(180px); opacity: .8; } }
+@keyframes monitor-wave { 0%, 100% { transform: scaleY(.65); opacity: .35; } 50% { transform: scaleY(1); opacity: .85; } }
+
+@media (min-width: 1800px) {
+  .dashboard-container.is-monitor { --monitor-rail: 340px; --monitor-inset: 26px; --monitor-gap: 22px; }
+  .is-monitor .monitor-card { padding: 18px; }
+  .is-monitor .monitor-detection-card { flex-basis: 280px; }
+  .is-monitor .monitor-card .monitor-detection-feed { max-height: 390px; }
+}
+@media (max-width: 1500px) {
+  .dashboard-container.is-monitor { --monitor-rail: 290px; --monitor-inset: 18px; --monitor-gap: 14px; }
+  .is-monitor .monitor-heading { width: 390px; padding: 12px 15px; }
+  .is-monitor .monitor-heading h2 { font-size: 21px; }
+  .is-monitor .monitor-heading .overview-meta { font-size: 9px; }
+  .is-monitor .kpi-row .kpi-card { padding: 5px 14px; }
+  .is-monitor .kpi-row .kpi-value { font-size: 29px; }
+  .is-monitor .kpi-row .kpi-icon { width: 23px; height: 23px; }
+  .is-monitor .monitor-rail { gap: 10px; }
+  .is-monitor .monitor-card { padding: 13px; }
+  .is-monitor .monitor-detection-card { flex-basis: 190px; }
+  .is-monitor .monitor-card .monitor-detection-feed { max-height: 240px; }
+  .is-monitor .monitor-card .monitor-linkage-feed { max-height: 114px; min-height: 60px; }
+  .is-monitor .map-panel .map-heading { padding: 0 12px; gap: 12px; }
+  .is-monitor .map-panel .map-heading small { display: none; }
+}
+@media (max-width: 1100px) {
+  .dashboard-container.is-monitor { --monitor-rail: 270px; --monitor-inset: 14px; --monitor-gap: 12px; }
+  .is-monitor .monitor-heading { width: 360px; }
+  .is-monitor .map-panel .map-heading { display: none; }
+  .is-monitor .kpi-row .kpi-card { padding: 5px 11px; }
+  .is-monitor .kpi-row .kpi-icon { display: none; }
+  .is-monitor .kpi-row .kpi-label { font-size: 10px; letter-spacing: 0; }
+  .is-monitor .kpi-row .kpi-value { font-size: 27px; }
+  .is-monitor .map-panel .alarm-banner-overlay { left: var(--monitor-inset); top: 228px; }
+}
+@media (max-width: 900px) {
+  .dashboard-container.is-monitor { display: block; overflow-y: auto; }
+  .is-monitor .monitor-stage { height: calc(100dvh - var(--header-height)); min-height: 650px; }
+  .is-monitor .monitor-stage > .kpi-row { right: var(--monitor-inset); }
+  .is-monitor .monitor-heading { max-width: calc(100% - 2 * var(--monitor-inset)); }
+  .is-monitor .monitor-rail { position: relative; inset: auto; width: auto; margin: 0 var(--monitor-inset) var(--monitor-inset); display: grid; grid-template-columns: 1fr 1fr; align-items: start; overflow: visible; }
+  .is-monitor .monitor-video-card { grid-row: span 2; }
+  .is-monitor .monitor-detection-card { min-height: 190px; }
+  .is-monitor .map-panel .map-heading { display: flex; top: 32px; left: auto; right: 18px; transform: none; }
+  .is-monitor .map-panel .alarm-banner-overlay { right: var(--monitor-inset); }
+  .is-monitor .map-panel .cesium-viewer-fullscreenContainer { right: var(--monitor-inset); }
+}
+@media (max-width: 600px) {
+  .is-monitor .monitor-stage { min-height: 690px; }
+  .is-monitor .monitor-heading { width: calc(100% - 2 * var(--monitor-inset)); padding: 12px 14px; }
+  .is-monitor .monitor-heading h2 { font-size: 20px; }
+  .is-monitor .monitor-heading .eyebrow { font-size: 7px; letter-spacing: 1.1px; }
+  .is-monitor .monitor-heading .overview-meta { display: none; }
+  .is-monitor .monitor-signal { width: 36px; height: 36px; }
+  .is-monitor .monitor-heading-main { gap: 11px; }
+  .is-monitor .map-panel .map-heading { display: none; }
+  .is-monitor .map-panel .map-controls { top: 110px; }
+  .is-monitor .map-panel .map-orientation { top: 225px; }
+  .is-monitor .monitor-stage > .kpi-row { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; }
+  .is-monitor .kpi-row .kpi-card { min-height: 76px; padding: 11px 13px; border-bottom: 1px solid #4266814d; }
+  .is-monitor .kpi-row .kpi-card:nth-child(3) { border-right: 0; }
+  .is-monitor .kpi-row .kpi-card:nth-child(n+4) { border-bottom: 0; }
+  .is-monitor .kpi-row .kpi-card:last-child { border-right: 1px solid #4266814d; }
+  .is-monitor .kpi-row .kpi-label { margin-bottom: 8px; font-size: 10px; }
+  .is-monitor .kpi-row .kpi-value { font-size: 26px; }
+  .is-monitor .kpi-row .kpi-trend { display: none; }
+  .is-monitor .map-panel .map-legend { bottom: 183px; gap: 13px; }
+  .is-monitor .map-panel .cesium-viewer-fullscreenContainer { bottom: 183px; }
+  .is-monitor .map-panel .alarm-banner-overlay { top: 268px; }
+  .is-monitor .monitor-rail { display: flex; flex-direction: column; }
+  .is-monitor .monitor-card { width: 100%; padding: 16px; }
+  .is-monitor .monitor-detection-card { flex: none; min-height: 240px; }
+}

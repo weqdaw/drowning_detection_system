@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黄村乡监控分发系统 - 智能视频分析与分发中心</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="style.css?v=1.0.5">
+    <link rel="stylesheet" href="command-theme.css?v=1.0.0">
+    <!-- flv.js for ZLMediaKit HTTP-FLV player -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flv.js/1.6.2/flv.min.js"></script>
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR -->
+        <aside class="app-sidebar">
+            <div class="sidebar-logo">
+                <span class="command-brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 32 32" fill="none"><path d="M16 3 27 7v8c0 7-5 11-11 14C10 26 5 22 5 15V7Z"/><rect x="10" y="10" width="9" height="7" rx="1"/><path d="m19 12 4-2v7l-4-2M10 22c3-4 8 4 12 0"/></svg>
+                </span>
+                <div class="logo-text">
+                    <h1>黄村乡监控分发系统 <span class="accent-text"></span></h1>
+                    <p>HUANGCUN / VIDEO INTELLIGENCE</p>
+                </div>
+            </div>
+
+            <div class="sidebar-section-label">工作空间 <span>WORKSPACE</span></div>
+            <nav class="sidebar-menu" aria-label="功能导航">
+                <button class="menu-item active" data-tab="monitor">
+                    <i class="fa-solid fa-tv"></i>
+                    <span>监控大屏</span>
+                </button>
+                <button class="menu-item" data-tab="streams">
+                    <i class="fa-solid fa-video"></i>
+                    <span>直播流管理</span>
+                </button>
+                <button class="menu-item" data-tab="models">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>算法模型库</span>
+                </button>
+                <button class="menu-item" data-tab="events">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>事件与告警</span>
+                </button>
+                <button class="menu-item" data-tab="logs">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>系统审计日志</span>
+                </button>
+            </nav>
+
+            <!-- Sidebar status badges -->
+            <div class="sidebar-status">
+                <div class="status-badge-row">
+                    <span class="status-label">ZLMediaKit:</span>
+                    <span id="zlm-status" class="status-badge offline">
+                        <span class="dot"></span><span class="text">检测中...</span>
+                    </span>
+                </div>
+                <div class="status-badge-row">
+                    <span class="status-label">GPU 加速:</span>
+                    <span id="gpu-status" class="status-badge offline">
+                        <span class="dot"></span><span class="text">检测中...</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Resource Monitors in Sidebar footer -->
+            <div class="sidebar-footer">
+                <div class="resource-title">
+                    <i class="fa-solid fa-server"></i> 系统资源监控
+                </div>
+                <div class="metrics-column">
+                    <div class="metric-progress-item">
+                        <div class="metric-header">
+                            <span>CPU 负载</span>
+                            <span id="cpu-text" class="metric-val">0%</span>
+                        </div>
+                        <div class="metric-progress-track">
+                            <svg class="progress-ring-mini" width="36" height="36">
+                                <circle class="progress-ring-bg" stroke="rgba(255,255,255,0.05)" stroke-width="3"
+                                    fill="transparent" r="14" cx="18" cy="18" />
+                                <circle id="cpu-circle" class="progress-ring-bar" stroke="var(--primary)"
+                                    stroke-width="3" fill="transparent" r="14" cx="18" cy="18" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-progress-item">
+                        <div class="metric-header">
+                            <span>系统内存</span>
+                            <span id="ram-text" class="metric-val">0%</span>
+                        </div>
+                        <div class="metric-progress-track">
+                            <svg class="progress-ring-mini" width="36" height="36">
+                                <circle class="progress-ring-bg" stroke="rgba(255,255,255,0.05)" stroke-width="3"
+                                    fill="transparent" r="14" cx="18" cy="18" />
+                                <circle id="ram-circle" class="progress-ring-bar" stroke="var(--accent)"
+                                    stroke-width="3" fill="transparent" r="14" cx="18" cy="18" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="metric-progress-item">
+                        <div class="metric-header">
+                            <span>GPU 负载</span>
+                            <span id="gpu-text" class="metric-val">0%</span>
+                        </div>
+                        <div class="metric-progress-track">
+                            <svg class="progress-ring-mini" width="36" height="36">
+                                <circle class="progress-ring-bg" stroke="rgba(255,255,255,0.05)" stroke-width="3"
+                                    fill="transparent" r="14" cx="18" cy="18" />
+                                <circle id="gpu-circle" class="progress-ring-bar" stroke="var(--success)"
+                                    stroke-width="3" fill="transparent" r="14" cx="18" cy="18" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div id="gpu-details" class="gpu-details">
+                    <span id="gpu-name">检测中...</span>
+                </div>
+
+
+            </div>
+        </aside>
+
+        <!-- MAIN MAIN -->
+        <main class="app-main">
+            <!-- TOP BAR HEADER -->
+            <header class="main-header">
+                <div class="command-header-title">
+                    <span class="command-eyebrow">VIDEO INTELLIGENCE / COMMAND CENTER</span>
+                    <h2 id="active-tab-title">监控大屏</h2>
+                </div>
+                <div class="header-actions">
+                    <a id="safety-system-link" class="btn system-return-link" href="/" aria-label="返回黄村乡防溺水安全监管系统" title="返回安全监管系统">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5-7 7 7 7M2 12h13a6 6 0 0 1 6 6"/></svg>
+                        <span>返回安全监管</span>
+                    </a>
+                    <span class="command-header-caption">智能感知 · 多路分发</span>
+                    <div class="system-time"><i class="fa-regular fa-clock"></i> <span
+                            id="clock-display">00:00:00</span></div>
+                </div>
+            </header>
+
+            <!-- TABS CONTENTS -->
+            <div class="main-content">
+                <!-- TAB 1: LIVE MONITOR -->
+                <div id="tab-monitor" class="tab-content active">
+                    <div class="tab-toolbar">
+                        <div class="command-toolbar-title">
+                            <span class="command-eyebrow">LIVE CHANNEL MATRIX</span>
+                            <h3><i class="fa-solid fa-tv text-accent"></i> 实时智能监控墙</h3>
+                        </div>
+                        <div class="grid-controls">
+                            <span class="grid-controls-label">视图布局</span>
+                            <button class="grid-btn active" data-grid="auto" title="自适应"><i
+                                    class="fa-solid fa-table-cells"></i></button>
+                            <button class="grid-btn" data-grid="1" title="单画面"><i
+                                    class="fa-solid fa-square"></i></button>
+                            <button class="grid-btn" data-grid="4" title="4画面"><i class="fa-solid fa-grip"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="video-grid auto-layout" id="video-grid">
+                        <div class="grid-empty-state">
+                            <div class="empty-glow"></div>
+                            <i class="fa-solid fa-circle-nodes empty-icon"></i>
+                            <h3>大屏空闲中</h3>
+                            <p>请在左侧列表启动通道进行视觉模型检测</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: STREAM CENTER -->
+                <div id="tab-streams" class="tab-content">
+                    <div class="stream-center-layout">
+                        <!-- Add Stream Widget -->
+                        <div class="glass-card add-stream-widget">
+                            <h3><i class="fa-solid fa-circle-plus icon-accent"></i> 接入新视频直播流</h3>
+                            <form id="add-stream-form">
+                                <div class="form-grid">
+                                    <div class="input-group">
+                                        <label for="stream-id">通道 ID (仅限英文数字)</label>
+                                        <input type="text" id="stream-id" required placeholder="例如: cam01">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="stream-name">通道名称</label>
+                                        <input type="text" id="stream-name" required placeholder="例如: 厂区大门监控">
+                                    </div>
+                                    <div class="input-group span-2">
+                                        <label for="stream-url">RTSP 直播流源地址</label>
+                                        <input type="text" id="stream-url" required
+                                            placeholder="rtsp://admin:123456@192.168.1.100:554/h264/ch1">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="stream-model">挂载分析模型</label>
+                                        <select id="stream-model" required>
+                                            <!-- Dynamic Options -->
+                                        </select>
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="stream-conf">置信度阈值 (<span id="conf-val">0.25</span>)</label>
+                                        <input type="range" id="stream-conf" min="0.05" max="0.95" step="0.05"
+                                            value="0.25">
+                                    </div>
+                                    <div class="input-group span-2">
+                                        <label for="stream-device">硬件/推理设备</label>
+                                        <select id="stream-device">
+                                            <option value="cuda">GPU 硬件加速 (RTX 4080 CUDA)</option>
+                                            <option value="cpu">CPU 模式 (无硬件加速)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i>
+                                    添加并启动分析</button>
+                            </form>
+                        </div>
+
+                        <!-- Active Streams Control List -->
+                        <div class="glass-card list-widget">
+                            <h3><i class="fa-solid fa-list-check icon-accent"></i> 视频直播流数据中心</h3>
+                            <div class="stream-list-container" id="stream-list">
+                                <!-- Dynamic list items -->
+                                <div class="list-empty">
+                                    <i class="fa-solid fa-video-slash"></i>
+                                    <p>暂无监控流，请在左侧添加</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: MODEL CENTER -->
+                <div id="tab-models" class="tab-content">
+                    <div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+
+                        <!-- TOP ROW: UPLOAD CARDS (2 Columns) -->
+                        <div class="models-upload-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <!-- Upload YOLOv8 Model (.pt) -->
+                            <div class="glass-card model-widget">
+                                <h3><i class="fa-solid fa-cloud-arrow-up icon-accent"></i> 上传 YOLOv8 视觉权重 (.pt)</h3>
+                                <div class="upload-area" id="drop-area">
+                                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                                    <p>拖拽 YOLOv8 模型权重文件 (.pt) 到此处</p>
+                                    <p class="subtext">或点击选择本地文件上传</p>
+                                    <input type="file" id="model-file-input" accept=".pt" style="display: none;">
+                                </div>
+                                <div id="upload-status" class="upload-status-bar" style="display: none;">
+                                    <span class="filename" id="upload-filename">model.pt</span>
+                                    <div class="progress-track">
+                                        <div class="progress-fill" id="upload-progress" style="width: 0%"></div>
+                                    </div>
+                                    <span class="percent" id="upload-percent">0%</span>
+                                </div>
+                            </div>
+
+                            <!-- Upload Audio ONNX Model & CSV Widget -->
+                            <div class="glass-card model-widget">
+                                <h3 style="color: var(--violet); display:flex; align-items:center; gap:8px;">
+                                    <i class="fa-solid fa-file-audio"></i> 上传音频 ONNX 模型与 CSV 标签文件 (.onnx + .csv)
+                                </h3>
+                                <div
+                                    style="background: rgba(124, 58, 237, 0.04); padding: 16px; border-radius: 12px; border: 1px dashed rgba(124, 58, 237, 0.25); display: flex; flex-direction: column; gap: 14px;">
+                                    <div class="audio-files-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                        <div>
+                                            <label
+                                                style="font-size: 11px; color: var(--text-light); display:block; margin-bottom: 6px; font-weight:600;">1.
+                                                选择 ONNX 音频模型文件 (.onnx)</label>
+                                            <label class="custom-file-picker">
+                                                <span class="custom-file-btn"><i class="fa-solid fa-microchip"></i> 浏览
+                                                    ONNX</span>
+                                                <span class="custom-file-name" id="label-audio-onnx">未选择文件</span>
+                                                <input type="file" id="audio-onnx-file-input" accept=".onnx"
+                                                    style="display:none;"
+                                                    onchange="updateFileName(this, 'label-audio-onnx')">
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label
+                                                style="font-size: 11px; color: var(--text-light); display:block; margin-bottom: 6px; font-weight:600;">2.
+                                                选择标签映射文件 (.csv)</label>
+                                            <label class="custom-file-picker">
+                                                <span class="custom-file-btn"><i class="fa-solid fa-file-csv"></i> 浏览
+                                                    CSV</span>
+                                                <span class="custom-file-name" id="label-audio-csv">未选择文件</span>
+                                                <input type="file" id="audio-csv-file-input" accept=".csv"
+                                                    style="display:none;"
+                                                    onchange="updateFileName(this, 'label-audio-csv')">
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="btn-upload-audio-model" class="btn btn-primary"
+                                        style="width: 100%; background: linear-gradient(135deg, var(--violet), #6d28d9); border: none; padding: 10px; font-size: 13px; font-weight:700; border-radius: 8px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);"
+                                        onclick="uploadAudioModelFiles()">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i> 上传并自动解析 CSV 标签文件
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BOTTOM ROW: FULL-WIDTH MODEL LIBRARIES (2 Columns Side-by-Side) -->
+                        <div class="models-library-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%;">
+                            <!-- YOLO Models Card -->
+                            <div class="glass-card" style="width: 100%;">
+                                <h3 style="margin-bottom: 14px;"><i class="fa-solid fa-brain icon-accent"></i> 图像视觉模型库
+                                </h3>
+                                <div class="model-grid" id="models-list-grid"
+                                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+                                    <!-- Dynamic Models Cards -->
+                                </div>
+                            </div>
+
+                            <!-- Audio Models Card -->
+                            <div class="glass-card" style="width: 100%;">
+                                <h3
+                                    style="color: var(--violet); display:flex; align-items:center; gap:8px; margin-bottom: 14px;">
+                                    <i class="fa-solid fa-volume-high"></i> 音频分析模型库
+                                </h3>
+                                <div class="model-grid" id="audio-models-list-grid"
+                                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+                                    <!-- Dynamic Audio Model Cards -->
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- TAB 5: EVENTS & ALARMS -->
+
+                <!-- TAB 6: EVENTS & ALARMS -->
+                <div id="tab-events" class="tab-content">
+                    <div class="tab-toolbar">
+                        <h3><i class="fa-solid fa-triangle-exclamation text-accent"></i> 智能分析与事件告警中心</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-sm btn-secondary" onclick="clearEventList()"><i
+                                    class="fa-solid fa-trash-can"></i> 清空记录</button>
+                            <button class="btn btn-sm btn-secondary" onclick="fetchEventLogs()"><i
+                                    class="fa-solid fa-rotate"></i> 刷新历史</button>
+                        </div>
+                    </div>
+                    <!-- Real-time Streams Analysis Grid -->
+                    <div id="realtime-analysis-grid"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                        <div class="glass-card"
+                            style="padding: 20px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">
+                            <i class="fa-solid fa-circle-info"
+                                style="font-size:20px; margin-bottom:6px; display:block;"></i>
+                            暂无运行中的智能分析通道，请在“监控大屏”或“直播流管理”启动分析
+                        </div>
+                    </div>
+
+                    <div style="display: block; width: 100%;">
+                        <!-- Events List Widget -->
+                        <div class="glass-card" style="min-height: 400px; display: flex; flex-direction: column;">
+                            <h4 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"><span
+                                    class="status-dot Running"></span> 实时告警信息与目标监测滚动推送</h4>
+                            <div class="table-container"
+                                style="flex: 1; max-height: calc(100vh - 350px); overflow-y: auto;">
+                                <table class="logs-table"
+                                    style="width: 100%; border-collapse: collapse; text-align: left;">
+                                    <thead>
+                                        <tr
+                                            style="border-bottom: 2px solid rgba(0,0,0,0.05); font-size: 11px; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.5px;">
+                                            <th style="padding: 10px 12px;">时间</th>
+                                            <th style="padding: 10px 12px;">监控通道</th>
+                                            <th style="padding: 10px 12px;">事件类别</th>
+                                            <th style="padding: 10px 12px;">置信度</th>
+                                            <th style="padding: 10px 12px;">详细描述</th>
+                                            <th style="padding: 10px 12px;">目标ID</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="events-ticker-tbody">
+                                        <!-- Real-time events rows will be inserted dynamically here -->
+                                        <tr>
+                                            <td colspan="6"
+                                                style="text-align: center; color: var(--text-muted); padding: 30px;"><i
+                                                    class="fa-solid fa-circle-info"></i> 暂无分析告警触发，系统正常运行中</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: SYSTEM AUDIT LOGS -->
+                <div id="tab-logs" class="tab-content">
+                    <div class="tab-toolbar">
+                        <h3><i class="fa-solid fa-list-check text-accent"></i> 系统操作与审计日志</h3>
+                        <button class="btn btn-sm btn-secondary" onclick="fetchAuditLogs()"><i
+                                class="fa-solid fa-rotate"></i> 刷新日志</button>
+                    </div>
+
+                    <div class="glass-card table-container"
+                        style="overflow-x: auto; max-height: calc(100vh - 220px); overflow-y: auto;">
+                        <table class="logs-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr
+                                    style="border-bottom: 2px solid rgba(255,255,255,0.08); font-size: 11px; text-transform: uppercase; color: var(--text-light); letter-spacing: 0.5px;">
+                                    <th style="padding: 14px 16px;">时间戳</th>
+                                    <th style="padding: 14px 16px;">操作员</th>
+                                    <th style="padding: 14px 16px;">操作类型</th>
+                                    <th style="padding: 14px 16px;">详细描述</th>
+                                    <th style="padding: 14px 16px;">客户端 IP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-logs-tbody">
+                                <!-- Log rows will be inserted dynamically here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- SHARE OUTFLOW MODAL -->
+    <div id="share-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-share-nodes icon-accent"></i> <span id="share-modal-title">视频通道外流直播地址</span>
+                </h3>
+                <button class="modal-close-icon" onclick="closeShareModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="url-group">
+                    <label>RTSP 播放源地址 (适合 VLC / PotPlayer)</label>
+                    <div class="url-input-wrapper">
+                        <input type="text" id="share-url-rtsp" readonly>
+                        <button class="btn btn-sm btn-primary btn-copy" onclick="copyUrl('share-url-rtsp', this)"><i
+                                class="fa-regular fa-copy"></i> 复制</button>
+                    </div>
+                </div>
+                <div class="url-group">
+                    <label>RTMP 播放源地址 (适合 OBS / 推流客户端)</label>
+                    <div class="url-input-wrapper">
+                        <input type="text" id="share-url-rtmp" readonly>
+                        <button class="btn btn-sm btn-primary btn-copy" onclick="copyUrl('share-url-rtmp', this)"><i
+                                class="fa-regular fa-copy"></i> 复制</button>
+                    </div>
+                </div>
+                <div class="url-group">
+                    <label>HTTP-FLV 播放源地址 (适合 低延迟网页集成)</label>
+                    <div class="url-input-wrapper">
+                        <input type="text" id="share-url-flv" readonly>
+                        <button class="btn btn-sm btn-primary btn-copy" onclick="copyUrl('share-url-flv', this)"><i
+                                class="fa-regular fa-copy"></i> 复制</button>
+                    </div>
+                </div>
+                <div class="url-group">
+                    <label>HLS (m3u8) 播放源地址 (适合 跨平台及移动端网页)</label>
+                    <div class="url-input-wrapper">
+                        <input type="text" id="share-url-hls" readonly>
+                        <button class="btn btn-sm btn-primary btn-copy" onclick="copyUrl('share-url-hls', this)"><i
+                                class="fa-regular fa-copy"></i> 复制</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeShareModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RULES CONFIGURATION MODAL (AUDIO AI ONLY) -->
+    <div id="rules-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass-card" style="max-width: 580px; width: 90%;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-volume-high icon-accent" style="color: var(--violet);"></i> <span
+                        id="rules-modal-title">通道音频 AI 分析配置</span></h3>
+                <button class="modal-close-icon" onclick="closeRulesModal()">&times;</button>
+            </div>
+            <form id="rules-config-form">
+                <input type="hidden" id="rules-stream-id">
+                <div class="modal-body" style="max-height: calc(100vh - 250px); overflow-y: auto; padding: 20px 24px;">
+                    <!-- Audio ONNX Analysis Only -->
+                    <div class="rules-section">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: rgba(124, 58, 237, 0.06); padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(124, 58, 237, 0.2);">
+                            <label
+                                style="font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 8px; color: var(--violet); margin: 0;">
+                                <i class="fa-solid fa-file-audio" style="font-size: 16px;"></i> 音频 AI 拆分识别与预警分析 (.onnx +
+                                .csv)
+                            </label>
+                            <input type="checkbox" id="rule-audio-enable"
+                                style="width: 36px; height: 18px; cursor: pointer; accent-color: var(--violet);">
+                        </div>
+                        <div class="form-grid"
+                            style="grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; font-size: 12px;">
+                            <div class="input-group">
+                                <label for="rule-audio-model" style="font-weight: 600;">挂载音频 ONNX 模型</label>
+                                <select id="rule-audio-model" onchange="onRuleAudioModelSelectChange(this.value)">
+                                    <option value="">-- 系统默认音频模型 (YAMNet_Audio.onnx) --</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="rule-audio-thresh" style="font-weight: 600;">音频触发阈值 (0.10 ~ 0.99)</label>
+                                <input type="number" id="rule-audio-thresh" value="0.70" min="0.10" max="0.99"
+                                    step="0.01">
+                            </div>
+                            <div class="input-group span-2">
+                                <label
+                                    style="display:flex; justify-content:space-between; align-items:center; font-weight: 600;">
+                                    <span>勾选预警目标声音事件 (display_name 类别):</span>
+                                    <span style="font-size:11px;">
+                                        <a href="javascript:void(0)" onclick="selectAllRuleAudioClasses()"
+                                            style="color:var(--violet); margin-right:10px; font-weight: bold;">全选</a>
+                                        <a href="javascript:void(0)" onclick="clearRuleAudioClasses()"
+                                            style="color:var(--text-muted);">清空</a>
+                                    </span>
+                                </label>
+                                <div id="rule-audio-classes-box"
+                                    style="max-height: 140px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 8px; background: rgba(0,0,0,0.03); padding: 12px; border-radius: 8px; border: 1px solid var(--border-light);">
+                                    <!-- Dynamic display_name checkboxes -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"
+                    style="display: flex; gap: 10px; justify-content: flex-end; padding: 14px 24px; border-top: 1px solid var(--border-light);">
+                    <button type="button" class="btn btn-secondary" onclick="closeRulesModal()">取消</button>
+                    <button type="submit" class="btn btn-primary" style="background: var(--violet); border-color: var(--violet);"><i
+                            class="fa-solid fa-circle-check"></i>
+                        保存音频 AI 分析配置</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="system-links.js?v=1.0.0"></script>
+    <script src="app.js?v=1.0.7"></script>
+</body>
+
+</html>

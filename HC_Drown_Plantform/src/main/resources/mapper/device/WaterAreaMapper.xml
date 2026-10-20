@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hc.drown.module.device.mapper.WaterAreaMapper">
+
+    <resultMap id="WaterAreaResultMap" type="com.hc.drown.module.device.entity.WaterArea">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="areaCode" column="area_code"/>
+        <result property="level" column="level"/>
+        <result property="boundary" column="boundary"/>
+        <result property="centerPoint" column="center_point"/>
+        <result property="description" column="description"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <select id="selectWaterAreaPage" resultMap="WaterAreaResultMap">
+        SELECT
+            id, name, area_code, level, description, created_at, updated_at, deleted,
+            boundary,
+            center_point
+        FROM water_area
+        WHERE deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (name LIKE CONCAT('%', #{keyword}, '%') OR area_code LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+
+    <select id="selectWaterAreaById" resultMap="WaterAreaResultMap">
+        SELECT
+            id, name, area_code, level, description, created_at, updated_at, deleted,
+            boundary,
+            center_point
+        FROM water_area
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <insert id="insertWaterArea" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO water_area (
+            name, area_code, level, boundary, center_point, description, created_at, updated_at, deleted
+        ) VALUES (
+            #{area.name},
+            #{area.areaCode},
+            #{area.level},
+            #{area.boundary},
+            #{area.centerPoint},
+            #{area.description},
+            COALESCE(#{area.createdAt}, NOW()),
+            COALESCE(#{area.updatedAt}, NOW()),
+            0
+        )
+    </insert>
+
+    <update id="updateWaterArea">
+        UPDATE water_area
+        <set>
+            <if test="area.name != null">name = #{area.name},</if>
+            <if test="area.areaCode != null">area_code = #{area.areaCode},</if>
+            <if test="area.level != null">level = #{area.level},</if>
+            <if test="area.boundary != null">boundary = #{area.boundary},</if>
+            <if test="area.centerPoint != null">center_point = #{area.centerPoint},</if>
+            <if test="area.description != null">description = #{area.description},</if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{area.id}
+    </update>
+
+    <select id="findContainingPoint" resultMap="WaterAreaResultMap">
+        SELECT
+            id, name, area_code, level, description, created_at, updated_at, deleted,
+            boundary,
+            center_point
+        FROM water_area
+        WHERE deleted = 0
+    </select>
+
+</mapper>

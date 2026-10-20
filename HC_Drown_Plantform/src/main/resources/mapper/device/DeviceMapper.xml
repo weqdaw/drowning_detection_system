@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hc.drown.module.device.mapper.DeviceMapper">
+
+    <resultMap id="DeviceResultMap" type="com.hc.drown.module.device.entity.Device">
+        <id property="id" column="id"/>
+        <result property="deviceCode" column="device_code"/>
+        <result property="deviceName" column="device_name"/>
+        <result property="deviceType" column="device_type"/>
+        <result property="manufacturer" column="manufacturer"/>
+        <result property="model" column="model"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="port" column="port"/>
+        <result property="location" column="location"/>
+        <result property="locationDesc" column="location_desc"/>
+        <result property="waterAreaId" column="water_area_id"/>
+        <result property="status" column="status"/>
+        <result property="lastHeartbeat" column="last_heartbeat"/>
+        <result property="extraConfig" column="extra_config" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deleted" column="deleted"/>
+        <result property="waterAreaName" column="water_area_name"/>
+    </resultMap>
+
+    <select id="selectDevicePage" resultMap="DeviceResultMap">
+        SELECT
+            d.id, d.device_code, d.device_name, d.device_type, d.manufacturer, d.model,
+            d.ip_address, d.port, d.location, d.location_desc, d.water_area_id, d.status, d.last_heartbeat,
+            d.extra_config, d.created_at, d.updated_at, d.deleted,
+            w.name AS water_area_name
+        FROM device d
+        LEFT JOIN water_area w ON d.water_area_id = w.id
+        WHERE d.deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND (d.device_name LIKE CONCAT('%', #{keyword}, '%') OR d.device_code LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="type != null and type != ''">
+            AND d.device_type = #{type}
+        </if>
+        <if test="waterAreaId != null">
+            AND d.water_area_id = #{waterAreaId}
+        </if>
+    </select>
+
+    <select id="selectDeviceById" resultMap="DeviceResultMap">
+        SELECT
+            d.id, d.device_code, d.device_name, d.device_type, d.manufacturer, d.model,
+            d.ip_address, d.port, d.location, d.location_desc, d.water_area_id, d.status, d.last_heartbeat,
+            d.extra_config, d.created_at, d.updated_at, d.deleted,
+            w.name AS water_area_name
+        FROM device d
+        LEFT JOIN water_area w ON d.water_area_id = w.id
+        WHERE d.id = #{id} AND d.deleted = 0
+    </select>
+
+    <insert id="insertDevice" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO device (
+            device_code, device_name, device_type, manufacturer, model, ip_address, port,
+            location, location_desc, water_area_id, status, last_heartbeat, extra_config,
+            created_at, updated_at, deleted
+        ) VALUES (
+            #{device.deviceCode},
+            #{device.deviceName},
+            #{device.deviceType},
+            #{device.manufacturer},
+            #{device.model},
+            #{device.ipAddress},
+            #{device.port},
+            #{device.location},
+            #{device.locationDesc},
+            #{device.waterAreaId},
+            COALESCE(#{device.status}, 'OFFLINE'),
+            #{device.lastHeartbeat},
+            #{device.extraConfig, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}::jsonb,
+            COALESCE(#{device.createdAt}, NOW()),
+            COALESCE(#{device.updatedAt}, NOW()),
+            0
+        )
+    </insert>
+
+    <update id="updateDevice">
+        UPDATE device
+        <set>
+            <if test="device.deviceCode != null">device_code = #{device.deviceCode},</if>
+            <if test="device.deviceName != null">device_name = #{device.deviceName},</if>
+            <if test="device.deviceType != null">device_type = #{device.deviceType},</if>
+            <if test="device.manufacturer != null">manufacturer = #{device.manufacturer},</if>
+            <if test="device.model != null">model = #{device.model},</if>
+            <if test="device.ipAddress != null">ip_address = #{device.ipAddress},</if>
+            <if test="device.port != null">port = #{device.port},</if>
+            <if test="device.location != null">location = #{device.location},</if>
+            <if test="device.locationDesc != null">location_desc = #{device.locationDesc},</if>
+            <if test="device.waterAreaId != null">water_area_id = #{device.waterAreaId},</if>
+            <if test="device.status != null">status = #{device.status},</if>
+            <if test="device.lastHeartbeat != null">last_heartbeat = #{device.lastHeartbeat},</if>
+            <if test="device.extraConfig != null">
+                extra_config = #{device.extraConfig, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}::jsonb,
+            </if>
+            <if test="device.deleted != null">deleted = #{device.deleted},</if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{device.id}
+    </update>
+
+    <select id="selectByDeviceType" resultMap="DeviceResultMap">
+        SELECT
+            id, device_code, device_name, device_type, manufacturer, model,
+            ip_address, port, location, location_desc, water_area_id, status, last_heartbeat,
+            extra_config, created_at, updated_at, deleted
+        FROM device
+        WHERE device_type = #{deviceType} AND deleted = 0
+    </select>
+
+    <select id="findNearestDevice" resultMap="DeviceResultMap">
+        SELECT
+            id, device_code, device_name, device_type, manufacturer, model,
+            ip_address, port, location, location_desc, water_area_id, status, last_heartbeat,
+            extra_config, created_at, updated_at, deleted
+        FROM device
+        WHERE device_type = #{deviceType} AND status = 'ONLINE' AND deleted = 0
+        ORDER BY (
+            (cast(split_part(substring(location from '\((.*)\)'), ' ', 1) as double precision) - #{lng}) * (cast(split_part(substring(location from '\((.*)\)'), ' ', 1) as double precision) - #{lng}) +
+            (cast(split_part(substring(location from '\((.*)\)'), ' ', 2) as double precision) - #{lat}) * (cast(split_part(substring(location from '\((.*)\)'), ' ', 2) as double precision) - #{lat})
+        ) ASC
+        LIMIT 1
+    </select>
+
+    <select id="selectDeviceByCodeIncludeDeleted" resultMap="DeviceResultMap">
+        SELECT
+            id, device_code, device_name, device_type, manufacturer, model,
+            ip_address, port, location, location_desc, water_area_id, status, last_heartbeat,
+            extra_config, created_at, updated_at, deleted
+        FROM device
+        WHERE device_code = #{deviceCode}
+    </select>
+
+</mapper>

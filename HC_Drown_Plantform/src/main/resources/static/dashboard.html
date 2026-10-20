@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黄村乡AI防溺水智能管理系统 - 决策联动指挥平台</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Header bar -->
+    <header class="header-bar">
+        <div class="brand">
+            <div class="brand-logo">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+            </div>
+            <div class="brand-title">
+                <h1>黄村乡AI防溺水智能管理系统</h1>
+                <p>Decision Linkage & Command Control center</p>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchMainTab('monitor')">实时监控</button>
+            <button class="nav-tab" onclick="switchMainTab('alerts')">告警记录</button>
+            <button class="nav-tab" onclick="switchMainTab('devices')">设备管理</button>
+            <button class="nav-tab" onclick="switchMainTab('analysis')">数据分析</button>
+        </div>
+
+        <div class="user-profile">
+            <div class="user-info">
+                <div class="user-name" id="profileName">加载中...</div>
+                <div class="user-role" id="profileRole">ROLE</div>
+            </div>
+            <button class="btn-logout" onclick="handleLogout()">安全退出</button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="dashboard-container">
+
+        <!-- 实时监控 MONITOR PANEL -->
+        <div class="main-content" id="panel-monitor">
+            <!-- KPI cards row -->
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <div>
+                        <div class="kpi-label">在线监控点</div>
+                        <div class="kpi-value" id="kpi-devices">0<span>/0</span></div>
+                        <div class="kpi-trend">运行状态稳定</div>
+                    </div>
+                    <div class="kpi-icon">🎥</div>
+                </div>
+                <div class="kpi-card">
+                    <div>
+                        <div class="kpi-label">实时涉水人数</div>
+                        <div class="kpi-value" id="kpi-people">0</div>
+                        <div class="kpi-trend up">AI 实时计数</div>
+                    </div>
+                    <div class="kpi-icon">👥</div>
+                </div>
+                <div class="kpi-card">
+                    <div>
+                        <div class="kpi-label">今日告警数</div>
+                        <div class="kpi-value" id="kpi-alerts">0</div>
+                        <div class="kpi-trend down" id="kpi-alerts-trend">暂无待确认</div>
+                    </div>
+                    <div class="kpi-icon">🚨</div>
+                </div>
+                <div class="kpi-card">
+                    <div>
+                        <div class="kpi-label">今日救援完成</div>
+                        <div class="kpi-value" id="kpi-completed">0</div>
+                        <div class="kpi-trend">已处置闭航</div>
+                    </div>
+                    <div class="kpi-icon">🚁</div>
+                </div>
+                <div class="kpi-card">
+                    <div>
+                        <div class="kpi-label">在岗救生力量</div>
+                        <div class="kpi-value" id="kpi-lifeguards">0</div>
+                        <div class="kpi-trend">实时GPS追踪</div>
+                    </div>
+                    <div class="kpi-icon">🛡️</div>
+                </div>
+            </div>
+
+            <!-- Map View -->
+            <div class="map-panel">
+                <div class="map-controls">
+                    <button class="btn-map-action" id="btn-draw-device" onclick="toggleDeviceDrawing()">
+                        📌 新增设备打点
+                    </button>
+                </div>
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- 告警记录 ALERTS PANEL -->
+        <div class="main-content hidden" id="panel-alerts">
+            <div class="panel-tab-content">
+                <div class="section-title">🚨 告警事件记录列表</div>
+                <table class="custom-table" id="alertsTable">
+                    <thead>
+                        <tr>
+                            <th>事件编号</th>
+                            <th>报警类型</th>
+                            <th>置信度</th>
+                            <th>所属水域</th>
+                            <th>状态</th>
+                            <th>时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alertsTableBody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 设备管理 DEVICES PANEL -->
+        <div class="main-content hidden" id="panel-devices">
+            <div class="panel-tab-content">
+                <div class="section-title">🎥 设备注册及工况总览</div>
+                <table class="custom-table" id="devicesTable">
+                    <thead>
+                        <tr>
+                            <th>编码</th>
+                            <th>名称</th>
+                            <th>类型</th>
+                            <th>IP/端口</th>
+                            <th>位置说明</th>
+                            <th>状态</th>
+                            <th>心跳时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="devicesTableBody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 数据分析 ANALYSIS PANEL -->
+        <div class="main-content hidden" id="panel-analysis">
+            <div class="panel-tab-content">
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="section-title">📈 近7日报警与救援任务完成情况</div>
+                        <div id="trendChart" style="width:100%; height:320px;"></div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="section-title">⚠️ 水域报警分布占比</div>
+                        <div id="distributionChart" style="width:100%; height:320px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar (Monitor-only view) -->
+        <aside class="right-sidebar" id="right-sidebar">
+            <div class="section-title">🎥 实时 AI 推理视域</div>
+            <div class="video-container">
+                <canvas id="liveCanvas"></canvas>
+                <div class="video-status">C02 · 中央南河段 (AI 推理中)</div>
+            </div>
+
+            <div class="video-actions">
+                <button class="btn-action primary" onclick="simulateBroadcast()">语音广播</button>
+                <button class="btn-action" onclick="simulateManualTrigger()">上报模拟告警</button>
+                <button class="btn-action" onclick="simulateDroneTakeoff()">指令无人机</button>
+            </div>
+
+            <div>
+                <div class="section-title">💡 视频解析目标检测</div>
+                <div class="detection-list">
+                    <div class="detection-item">
+                        <div class="detection-class">
+                            <span class="detection-dot dot-danger"></span>
+                            人员靠近危险水域
+                        </div>
+                        <span class="detection-val">96.8%</span>
+                    </div>
+                    <div class="detection-item">
+                        <div class="detection-class">
+                            <span class="detection-dot dot-warning"></span>
+                            异常嬉水挥手
+                        </div>
+                        <span class="detection-val">84.2%</span>
+                    </div>
+                    <div class="detection-item">
+                        <div class="detection-class">
+                            <span class="detection-dot dot-success"></span>
+                            救生圈在线在线
+                        </div>
+                        <span class="detection-val">98.1%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">📢 最近决策联动日志</div>
+                <div class="detection-list" id="linkage-logs-container" style="max-height: 150px; overflow-y: auto; font-size:11px; color: var(--text-muted);">
+                    <div>[系统] AI 防溺水决策引擎准备就绪...</div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- ADD DEVICE MODAL OVERLAY -->
+    <div class="modal-overlay" id="addDeviceModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">📌 注册新设备 (地图交互打点)</h3>
+                <button class="btn-close-modal" onclick="closeDeviceModal()">&times;</button>
+            </div>
+            <form id="addDeviceForm" onsubmit="submitNewDevice(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="devCode">设备编码</label>
+                        <input type="text" id="devCode" class="form-control" placeholder="如 CAM001" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="devName">设备名称</label>
+                        <input type="text" id="devName" class="form-control" placeholder="如 南河段桥头摄像" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="devType">设备类型</label>
+                        <select id="devType" class="form-control" required>
+                            <option value="CAMERA">🎥 智能摄像机 (CAMERA)</option>
+                            <option value="SPEAKER">📢 远程音柱 (SPEAKER)</option>
+                            <option value="DRONE_HANGAR">🏗️ 无人机自动机库 (DRONE_HANGAR)</option>
+                            <option value="DRONE">🚁 巡逻无人机 (DRONE)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="devIp">IP 地址</label>
+                        <input type="text" id="devIp" class="form-control" placeholder="192.168.1.100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="devPort">端口</label>
+                        <input type="number" id="devPort" class="form-control" placeholder="80" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="devHangar">水域关联</label>
+                        <select id="devWaterArea" class="form-control" required>
+                            <!-- Ingested dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group form-full">
+                        <label>定位经纬度</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="devLng" class="form-control" readonly>
+                            <input type="text" id="devLat" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group form-full">
+                        <label for="devDesc">安装位置详细描述</label>
+                        <input type="text" id="devDesc" class="form-control" placeholder="如 黄村乡南河桥东北侧电线杆">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-action" onclick="closeDeviceModal()">取消</button>
+                    <button type="submit" class="btn-action primary">确认注册</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- ECharts JS -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Custom JS -->
+    <script src="js/app.js"></script>
+</body>
+</html>
