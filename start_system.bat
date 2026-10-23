@@ -1,4 +1,11 @@
 @echo off
+if not defined HC_PLATFORM_DIR set "HC_PLATFORM_DIR=%~dp0..\VideoFlow_AI"
+if not exist "%HC_PLATFORM_DIR%\pom.xml" if exist "%~dp0HC_Drown_Plantform\pom.xml" set "HC_PLATFORM_DIR=%~dp0HC_Drown_Plantform"
+if not exist "%HC_PLATFORM_DIR%\pom.xml" (
+    echo HC platform not found. Clone VideoFlow_AI beside this repository or set HC_PLATFORM_DIR.
+    pause
+    exit /b 1
+)
 title 黄村乡 AI 防溺水智能管理系统 - 快捷启动中枢
 cls
 
@@ -99,13 +106,13 @@ timeout /t 3 /nobreak >nul
 
 echo.
 echo [3/4] 正在启动 Java 核心业务后台服务 (端口 8080)...
-start "Java-Spring-Boot-8080" cmd /k "cd /d "%~dp0HC_Drown_Plantform" && mvn spring-boot:run"
+start "Java-Spring-Boot-8080" cmd /k "cd /d "%HC_PLATFORM_DIR%" && mvn spring-boot:run"
 
 timeout /t 5 /nobreak >nul
 
 echo.
 echo [4/4] 正在启动 Vue3 三维防溺水数据大屏 (端口 5173)...
-start "Vue-BigScreen-Frontend-5173" cmd /k "cd /d "%~dp0HC_Drown_Plantform/frontend" && npm run dev"
+start "Vue-BigScreen-Frontend-5173" cmd /k "cd /d "%HC_PLATFORM_DIR%/frontend" && npm run dev"
 
 timeout /t 6 /nobreak >nul
 

@@ -41,3 +41,6 @@ build/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Regulatory platform is maintained in its own GitHub repository
+/HC_Drown_Plantform/
